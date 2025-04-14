@@ -1,0 +1,20 @@
+{
+  "name": "double-temple-webster-inventory-sync",
+  "version": "1.0.0",
+  "description": "Syncs inventory data from Shopify to Temple and Webster via FTP",
+  "main": "syncInventory.js",
+  "type": "module",
+  "scripts": {
+    "start": "node syncInventory.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["shopify", "inventory", "sync", "temple", "webster"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.7",
+    "basic-ftp": "^5.0.5",
+    "dotenv": "^16.4.5",
+    "json2csv": "^6.0.0"
+  }
+}
