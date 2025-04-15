@@ -147,7 +147,7 @@ async function exportProductsToCSV() {
             });
 
 						// Get the custom value for this SKU from the mapping, default to Product Title if not found
-            const customColumnValue = customValueMapping[variant.sku] || product.title;
+            const customColumnValue = customValueMapping[variant.sku] || `${product.title} Machine Washable`;
 
             csvData.push({
 								supplier_id: SUPPLIER_ID,
