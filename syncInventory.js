@@ -210,7 +210,7 @@ async function uploadToFTP(filename) {
 	try {
 			console.log("Starting process...");
 			const filename = await exportProductsToCSV();
-			// await uploadToFTP(filename);
+			await uploadToFTP(filename);
 			console.log("Process completed successfully!");
 	} catch (err) {
 			console.error("Process failed:", err.message);
