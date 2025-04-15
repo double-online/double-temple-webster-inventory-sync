@@ -194,9 +194,9 @@ async function uploadToFTP(filename) {
 
 			console.log("Connected to FTP server");
 
-			const filePath = path.join(__dirname, filename);
-			await client.uploadFrom(filePath, `${FTP_CONFIG.remotePath}${filename}`);
-			console.log(`File uploaded to FTP: ${FTP_CONFIG.remotePath}${filename}`);
+			const filePath = path.join(process.cwd(), filename);
+			await client.uploadFrom(filePath, `${filename}`);
+			console.log(`File uploaded to FTP: ${filename}`);
 	} catch (err) {
 			console.error("Error uploading file to FTP:", err.message);
 			throw err;
