@@ -139,11 +139,11 @@ async function exportProductsToCSV() {
 						let preorderDate = null;
             locations.forEach(location => {
                 const level = inventoryLevels.find(l => l.location_id === location.id);
-                const locationColumn = locationMap[level.location_id];
+                const locationColumn = locationMap[location.id];
                 inventoryByLocation[locationColumn] = level ? level.available : 0;
-								if (location.id == 72401322233 && level.available > 0) {
-									preorderDate = new Intl.DateTimeFormat('en-GB').format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
-								}
+                if (location.id == 72401322233 && level && level.available > 0) {
+                    preorderDate = new Intl.DateTimeFormat('en-GB').format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+                }
             });
 
 						// Get the custom value for this SKU from the mapping, default to Product Title if not found
