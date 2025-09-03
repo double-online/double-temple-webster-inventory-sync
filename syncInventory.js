@@ -89,6 +89,55 @@ async function fetchAllProducts() {
     return allProducts;
 }
 
+// Function to format date to dd/mm/yyyy
+function formatDateToDDMMYYYY(dateString) {
+	if (!dateString) return "";
+	
+	try {
+		// Handle various date formats that might come from Shopify
+		const date = new Date(dateString);
+		
+		// Check if date is valid
+		if (isNaN(date.getTime())) {
+			console.log(`Invalid date format received: ${dateString}`);
+			return "";
+		}
+		
+		// Format to dd/mm/yyyy
+		const day = String(date.getDate()).padStart(2, '0');
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const year = date.getFullYear();
+		
+		return `${day}/${month}/${year}`;
+	} catch (error) {
+		console.error('Error formatting date:', error);
+		return "";
+	}
+}
+
+// Function to fetch shop metafield for preorder date
+async function fetchShopMetafield() {
+	try {
+		const response = await axios.get(`https://${SHOPIFY_STORE_NAME}.myshopify.com/admin/api/2023-04/metafields.json?namespace=custom&key=temple_webster_default_preorder_date`, {
+			headers: { 'X-Shopify-Access-Token': accessToken }
+		});
+		
+		if (response.data.metafields && response.data.metafields.length > 0) {
+			const metafield = response.data.metafields[0];
+			const formattedDate = formatDateToDDMMYYYY(metafield.value);
+			console.log(`Fetched preorder date from metafield: ${metafield.value} -> formatted: ${formattedDate}`);
+			return formattedDate;
+		}
+		
+		console.log('No metafield found, leaving preorder date blank');
+		return "";
+	} catch (error) {
+		console.error('Error fetching shop metafield:', error);
+		console.log('Leaving preorder date blank due to error');
+		return "";
+	}
+}
+
 // Function to fetch all locations
 async function fetchAllLocations() {
 	try {
@@ -110,6 +159,7 @@ async function fetchInventoryLevels(variantId) {
 async function exportProductsToCSV() {
 
 	const locations = await fetchAllLocations();
+	const defaultPreorderDate = await fetchShopMetafield();
 	let allProducts = [];
     let nextUrl = `${shopifyBaseUrl}/products.json?limit=250`;
 
@@ -142,7 +192,7 @@ async function exportProductsToCSV() {
                 const locationColumn = locationMap[location.id];
                 inventoryByLocation[locationColumn] = level ? level.available : 0;
                 if (location.id == 72401355001 && (!level || level.available === 0)) {
-                    preorderDate = "05/09/2025";
+                    preorderDate = defaultPreorderDate;
                 }
             });
 
@@ -208,11 +258,11 @@ async function uploadToFTP(filename) {
 // Main Execution
 (async function main() {
 	try {
-			console.log("Starting process...");
-			const filename = await exportProductsToCSV();
-			await uploadToFTP(filename);
-			console.log("Process completed successfully!");
+        console.log("Starting process...");
+        const filename = await exportProductsToCSV();
+        await uploadToFTP(filename);
+        console.log("Process completed successfully!");
 	} catch (err) {
-			console.error("Process failed:", err.message);
+        console.error("Process failed:", err.message);
 	}
 })();
