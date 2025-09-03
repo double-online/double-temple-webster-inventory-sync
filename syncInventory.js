@@ -136,13 +136,13 @@ async function exportProductsToCSV() {
 
             // Create an object to store the inventory levels for each location
             const inventoryByLocation = {};
-						let preorderDate = null;
+            let preorderDate = null;
             locations.forEach(location => {
                 const level = inventoryLevels.find(l => l.location_id === location.id);
                 const locationColumn = locationMap[location.id];
                 inventoryByLocation[locationColumn] = level ? level.available : 0;
-                if (location.id == 72401322233 && level && level.available > 0) {
-                    preorderDate = new Intl.DateTimeFormat('en-GB').format(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+                if (location.id == 72401355001 && (!level || level.available === 0)) {
+                    preorderDate = "05/09/2025";
                 }
             });
 
