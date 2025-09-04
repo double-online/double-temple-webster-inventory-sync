@@ -118,7 +118,7 @@ function formatDateToDDMMYYYY(dateString) {
 // Function to fetch shop metafield for preorder date
 async function fetchShopMetafield() {
 	try {
-		const response = await axios.get(`https://${SHOPIFY_STORE_NAME}.myshopify.com/admin/api/2023-04/metafields.json?namespace=custom&key=temple_webster_default_preorder_date`, {
+		const response = await axios.get(`https://${SHOPIFY_STORE_NAME}.myshopify.com/admin/api/2023-04/metafields.json?namespace=custom&key=temple_webster_next_availability_date`, {
 			headers: { 'X-Shopify-Access-Token': accessToken }
 		});
 		
