@@ -29,8 +29,8 @@ const FTP_CONFIG = {
 // Map each location ID to a custom column name
 const locationMap = {
   '72401355001': 'quantity',
-  '72805974265': 'qty_on_order',
-  '72401322233': 'qty_backordered'
+  '72401322233': 'qty_backordered',
+  '72805974265': 'qty_on_order'
 };
 
 // IDs to retain
@@ -203,6 +203,13 @@ async function exportProductsToCSV() {
         }
       });
       
+      // Additional check for location 72513519865 - if it has stock, item is not discontinued
+      const additionalLocationLevel = inventoryLevels.find(l => l.location_id === 72513519865);
+      const additionalLocationAvailable = additionalLocationLevel ? additionalLocationLevel.available : 0;
+      if (additionalLocationAvailable > 0) {
+        allLocationsEmpty = false;
+      }
+      
       // Second pass: set preorder date only if not all locations are empty
       if (!allLocationsEmpty) {
         const mainLocation = locations.find(location => location.id == 72401355001);
@@ -220,7 +227,9 @@ async function exportProductsToCSV() {
       csvData.push({
         supplier_id: SUPPLIER_ID,
         product_code: variant.sku,
-        ...inventoryByLocation,
+        quantity: inventoryByLocation.quantity,
+        qty_backordered: inventoryByLocation.qty_backordered,
+        qty_on_order: inventoryByLocation.qty_on_order,
         item_next_availability_date: preorderDate,
         item_discontinued: allLocationsEmpty ? 1 : 0,
         item_description: customColumnValue
