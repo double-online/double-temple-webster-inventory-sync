@@ -29,11 +29,12 @@ const FTP_CONFIG = {
 // Map each location ID to a custom column name
 const locationMap = {
 	'72401355001': 'quantity',
-	'72805974265': 'qty_on_order'
+	'72805974265': 'qty_on_order',
+	'72401322233': 'qty_backordered'
 };
 
 // IDs to retain
-const targetLocationIds = [72401355001, 72805974265];
+const targetLocationIds = [72401355001, 72805974265, 72401322233];
 
 async function fetchProducts(url) {
     try {
@@ -200,10 +201,9 @@ async function exportProductsToCSV() {
             const customColumnValue = customValueMapping[variant.sku] || `${product.title} Machine Washable`;
 
             csvData.push({
-								supplier_id: SUPPLIER_ID,
+                supplier_id: SUPPLIER_ID,
                 product_code: variant.sku,
                 ...inventoryByLocation,
-                qty_backordered: 0,
                 item_next_availability_date: preorderDate,
                 item_discontinued: 0,
                 item_description: customColumnValue
