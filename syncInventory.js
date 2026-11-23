@@ -5,19 +5,24 @@ import { Parser } from 'json2csv';
 import ftp from 'basic-ftp';
 import path from 'path';
 import { targetSKUs, customValueMapping } from './productMappings.js';
+import { SHOPIFY_STORE_NAME, getAccessToken } from './shopifyAuth.js';
 
 dotenv.config();
 
-const SHOPIFY_API_KEY = process.env.SHOPIFY_API_KEY;
-const SHOPIFY_PASSWORD = process.env.SHOPIFY_PASSWORD;
-const SHOPIFY_STORE_NAME = process.env.SHOPIFY_STORE_NAME;
-const PRODUCTS_ENDPOINT = `https://${SHOPIFY_API_KEY}:${SHOPIFY_PASSWORD}@${SHOPIFY_STORE_NAME}.myshopify.com/admin/api/2023-04/products.json`;
+const API_VERSION = '2026-10';
 
 const SUPPLIER_ID = process.env.SUPPLIER_ID;
 const RESULTS_PER_PAGE = process.env.RESULTS_PER_PAGE;
 
-const shopifyBaseUrl = `https://${SHOPIFY_STORE_NAME}.myshopify.com/admin/api/2023-01`;
-const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+const shopifyBaseUrl = `https://${SHOPIFY_STORE_NAME}.myshopify.com/admin/api/${API_VERSION}`;
+
+async function shopifyGet(url, params) {
+  const token = await getAccessToken();
+  return axios.get(url, {
+    params,
+    headers: { 'X-Shopify-Access-Token': token },
+  });
+}
 
 const FTP_CONFIG = {
   host: process.env.FTP_HOST,
@@ -39,9 +44,7 @@ const targetLocationIds = [72401355001, 72805974265, 72401322233];
 async function fetchProducts(url) {
   try {
     console.log(`Fetching products from: ${url}`);
-    const response = await axios.get(url, {
-      headers: { 'X-Shopify-Access-Token': accessToken }
-    });
+    const response = await shopifyGet(url);
 
     const products = response.data.products;
     const nextLink = response.headers['link']
@@ -53,9 +56,10 @@ async function fetchProducts(url) {
       nextUrl: nextLink ? nextLink[1] : null
     };
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error('Error fetching products:', error.message);
+    throw error;
   }
-};
+}
 
 async function fetchAllProducts() {
   let allProducts = [];
@@ -72,7 +76,7 @@ async function fetchAllProducts() {
     console.log(`Fetching products...`);
 
     try {
-      const { data } = await axios.get(PRODUCTS_ENDPOINT, { params });
+      const { data } = await shopifyGet(`${shopifyBaseUrl}/products.json`, params);
       const products = data.products;
 
       if (!products.length) break;
@@ -119,8 +123,9 @@ function formatDateToDDMMYYYY(dateString) {
 // Function to fetch shop metafield for preorder date
 async function fetchShopMetafield() {
   try {
-    const response = await axios.get(`https://${SHOPIFY_STORE_NAME}.myshopify.com/admin/api/2023-04/metafields.json?namespace=custom&key=temple_webster_next_availability_date`, {
-      headers: { 'X-Shopify-Access-Token': accessToken }
+    const response = await shopifyGet(`${shopifyBaseUrl}/metafields.json`, {
+      namespace: 'custom',
+      key: 'temple_webster_next_availability_date',
     });
     
     if (response.data.metafields && response.data.metafields.length > 0) {
@@ -142,18 +147,19 @@ async function fetchShopMetafield() {
 // Function to fetch all locations
 async function fetchAllLocations() {
   try {
-    const response = await axios.get(`https://${SHOPIFY_API_KEY}:${SHOPIFY_PASSWORD}@${SHOPIFY_STORE_NAME}.myshopify.com/admin/api/2023-04/locations.json`);
+    const response = await shopifyGet(`${shopifyBaseUrl}/locations.json`);
     const filteredResponse = response.data.locations.filter(location => targetLocationIds.includes(location.id));
     return filteredResponse;
   } catch (error) {
-    console.error('Error fetching locations:', error);
-    return [];
+    console.error('Error fetching locations:', error.message);
+    throw error;
   }
 }
 
 async function fetchInventoryLevels(variantId) {
-  const inventoryEndpoint = `https://${SHOPIFY_API_KEY}:${SHOPIFY_PASSWORD}@${SHOPIFY_STORE_NAME}.myshopify.com/admin/api/2023-04/inventory_levels.json?inventory_item_ids=${variantId}`;
-  const { data } = await axios.get(inventoryEndpoint);
+  const { data } = await shopifyGet(`${shopifyBaseUrl}/inventory_levels.json`, {
+    inventory_item_ids: variantId,
+  });
   return data.inventory_levels || [];
 }
 

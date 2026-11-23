@@ -1,5 +1,6 @@
 # Environment variables
 .env
+.shopify-session.json
 
 # Node modules
 node_modules/

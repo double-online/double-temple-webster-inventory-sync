@@ -15,7 +15,7 @@ This Node.js application synchronizes inventory data from Shopify to both Temple
 
 - Node.js (v14 or higher)
 - npm (Node Package Manager)
-- Shopify store credentials
+- Shopify Dev Dashboard app installed on the store, with `read_products`, `read_inventory`, and `read_locations`
 - FTP server credentials for Temple and Webster
 
 ## Installation
@@ -33,10 +33,9 @@ npm install
 
 3. Create a `.env` file in the root directory with the following variables:
 ```env
-SHOPIFY_API_KEY=your_api_key
-SHOPIFY_PASSWORD=your_password
 SHOPIFY_STORE_NAME=your_store_name
-SHOPIFY_ACCESS_TOKEN=your_access_token
+SHOPIFY_CLIENT_ID=your_client_id
+SHOPIFY_CLIENT_SECRET=your_client_secret
 SUPPLIER_ID=your_supplier_id
 RESULTS_PER_PAGE=250
 
@@ -49,7 +48,14 @@ FTP_REMOTE_PATH=your_remote_path
 
 ## Usage
 
-Run the sync process:
+`double-online` is a production store, so the client credentials grant cannot mint a token for it. Authorize once in the browser, which writes `.shopify-session.json`. Later runs refresh that session.
+
+1. In the Dev Dashboard app version, set the allowed redirection URL to `http://localhost:3456/callback` and release the version. Scopes on that version must include `read_products`, `read_inventory`, and `read_locations`.
+2. Approve the install:
+```bash
+npm run auth
+```
+3. Run the sync:
 ```bash
 npm start
 ```
